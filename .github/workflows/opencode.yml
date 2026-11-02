@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   opencode:
-    # ONLY run if the comment is made by lukeiscooldev AND starts with /oc or /opencode
+    # Restrict to lukeiscooldev AND check for /oc or /opencode slash commands
     if: >
       github.actor == 'lukeiscooldev' &&
       (contains(github.event.comment.body, '/oc') || contains(github.event.comment.body, '/opencode'))
@@ -25,9 +25,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run OpenCode Action
-        uses: opencode-ai/opencode/github@v1
+        uses: anomalyco/opencode/github@dev
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         with:
-          model: openrouter/google/gemini-2.5-flash
-          
+          model: openrouter/openrouter/free
