@@ -1,4 +1,4 @@
-name: OpenCode Assistant (OpenRouter)
+name: opencode
 
 on:
   issue_comment:
@@ -14,19 +14,22 @@ permissions:
 
 jobs:
   opencode:
-    # Restrict to lukeiscooldev AND check for /oc or /opencode slash commands
-    if: >
-      github.actor == 'lukeiscooldev' &&
-      (contains(github.event.comment.body, '/oc') || contains(github.event.comment.body, '/opencode'))
+    if: |
+      (github.actor == 'lukeiscooldev' || github.actor == 'Golden-Launcher-Org') &&
+      (contains(github.event.comment.body, '/oc') || 
+       contains(github.event.comment.body, '/opencode'))
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
-      - name: Run OpenCode Action
-        uses: anomalyco/opencode/github@dev
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: openrouter/openrouter/free
+          agent: build
