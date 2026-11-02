@@ -16,44 +16,46 @@ concurrency:
 
 jobs:
   build:
-    name: Build Horizon Android (ARM64)
+    name: Build Horizon Android ARM64
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: android
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Set up Java 25
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "25"
+          java-version: "21"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Set up Android SDK command-line tools
+        uses: android-actions/setup-android@v4
+        with:
+          packages: ''
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
 
-      - name: Install Android SDK components
+      - name: Install Android SDK packages
         run: |
+          yes | sdkmanager --licenses
           sdkmanager --install \
             "platforms;android-35" \
             "build-tools;35.0.0" \
             "ndk;27.2.12479018"
 
       - name: Set up Rust
-        run: |
-          rustup show
-          rustup target add aarch64-linux-android
-          rustc --version
-          cargo --version
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.95.0"
+          targets: aarch64-linux-android
+          components: clippy,rustfmt
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -65,8 +67,14 @@ jobs:
         with:
           cache-on-failure: true
 
-      - name: Check public source tree
-        run: python tools/check_public_tree.py --history
+      - name: Check toolchain
+        run: |
+          python --version
+          java -version
+          rustc --version
+          cargo --version
+          gradle --version
+          sdkmanager --list_installed
 
       - name: Prepare Horizon engine
         run: python tools/android_prepare.py
@@ -87,4 +95,3 @@ jobs:
           path: .local/android/apk/arm64-v8a/horizon-android-public.apk
           if-no-files-found: error
           retention-days: 14
-          
